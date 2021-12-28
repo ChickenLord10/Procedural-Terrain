@@ -42,7 +42,7 @@ public class MapGenerator : MonoBehaviour
                 {
                     if(currentHeight <= regions[i].height)
                     {
-                        colourMap[y * mapHeight + x] = regions[i].colour;
+                        colourMap[y * mapWidth + x] = regions[i].colour;
                         break;
                     }
                 }
