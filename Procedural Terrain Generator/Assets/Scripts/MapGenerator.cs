@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
-    public enum DrawMode { NoiseMap, ColourMap, Mesh}
+    public enum DrawMode { NoiseMap, ColourMap, Mesh, TileMap }
     public DrawMode drawmode;
     
     
@@ -21,6 +21,8 @@ public class MapGenerator : MonoBehaviour
 
     public float meshHeightMultiplier;
     public AnimationCurve meshHeightCurve;
+    public Texture2D terrainTiles;
+    public int tileResolution;
 
     public bool autoUpdate;
 
@@ -30,39 +32,49 @@ public class MapGenerator : MonoBehaviour
     {
         float[,] noiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, offset);
 
-        Color[] colourMap = new Color[mapWidth * mapHeight];
-
-        for (int y = 0; y < mapHeight; y++)
-        {
-            for (int x = 0; x < mapWidth; x++)
-            {
-                float currentHeight = noiseMap[x, y];
-
-                for(int i = 0; i < regions.Length; i++)
-                {
-                    if(currentHeight <= regions[i].height)
-                    {
-                        colourMap[y * mapWidth + x] = regions[i].colour;
-                        break;
-                    }
-                }
-            }
-        }
 
         MapDisplay display = FindObjectOfType<MapDisplay>();
         if(drawmode == DrawMode.NoiseMap)
         {
-            display.DrawTexture(TextureGenerator.TextureFromHeightMap(noiseMap));
+            Texture2D texture = TextureGenerator.TextureFromHeightMap(noiseMap);
+            display.DrawTexture(texture);
         }
         else if (drawmode == DrawMode.ColourMap)
         {
-            display.DrawTexture(TextureGenerator.TextureFromColourMap(colourMap, mapWidth, mapHeight));
+            Color[] colourMap = ColourMapGenerator.GenerateColourMapRegions(noiseMap, mapWidth, mapHeight, regions);
+            Texture2D texture = TextureGenerator.TextureFromColourMap(colourMap, mapWidth, mapHeight);
+            display.DrawTexture(texture);
         }
         else if (drawmode == DrawMode.Mesh)
         {
-            display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve), TextureGenerator.TextureFromColourMap(colourMap, mapWidth, mapHeight));
+            Color[] colourMap = ColourMapGenerator.GenerateColourMapRegions(noiseMap, mapWidth, mapHeight, regions);
+            MeshData meshData = MeshGenerator.GenerateHeightTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve);
+            Texture2D texture = TextureGenerator.TextureFromColourMap(colourMap, mapWidth, mapHeight);
+            display.DrawMesh(meshData, texture);
+        }
+        else if (drawmode == DrawMode.TileMap)
+        {
+            /*
+            // make a tile map using tileData
+            TileMapData tileMapData = TileMapGenerator.GenerateTileMap(noiseMap, TerrainTiles)
+
+            // make a texture using the tile map
+            Texture2D texture = TextureGenerator.TextureFromTileMap(tileMapData, mapWidth, mapHeight);
+            
+            // make a flat mesh 
+            MeshData meshData = MeshGenerator.GenerateHeightTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve);
+
+            // display the mesh and texture
+            display.DrawMesh(meshData, texture);
+
+            */
+            Texture2D texture = TextureGenerator.TextureFromTileMapColour(terrainTiles, mapWidth, mapHeight, tileResolution);
+            MeshData meshData = MeshGenerator.GenerateFlatTerrainMesh(noiseMap);
+            display.DrawMesh(meshData, texture);
         }
     }
+
+    
 
     private void OnValidate()
     {
@@ -80,4 +92,11 @@ public struct TerrainType
     public string name;
     public float height;
     public Color colour;
+}
+
+public struct TerrainTile
+{
+    public string name;
+    public float height;
+    public Texture2D terrainTileTexture;
 }

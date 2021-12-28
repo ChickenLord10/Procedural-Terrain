@@ -4,7 +4,47 @@ using UnityEngine;
 
 public static class TextureGenerator
 {
-    
+    public static Color[][] ChopUpTiles(Texture2D tileMaptexture, int TileRes)
+    {
+        int NumTilesPerRow = tileMaptexture.width / TileRes;
+        int NumRows = tileMaptexture.height / TileRes;
+
+        Color[][] tiles = new Color[NumTilesPerRow * NumRows][];
+
+        for(int y = 0; y < NumRows; y++)
+        {
+            for (int x = 0; x < NumTilesPerRow; x++)
+            {
+                tiles[y * NumTilesPerRow + x] = tileMaptexture.GetPixels(x* TileRes, y * TileRes, TileRes, TileRes);
+            }
+        }
+        return tiles;
+    }
+
+    public static Texture2D TextureFromTileMapColour(Texture2D tileMaptexture, int width, int height, int TileRes)
+    {
+        int NumTilesPerRow = tileMaptexture.width / TileRes;
+        Color[][] tiles = ChopUpTiles(tileMaptexture, TileRes);
+
+        Texture2D texture = new Texture2D(width * TileRes, height * TileRes);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                Color[] pixels = tiles[Random.Range(0, NumTilesPerRow)];
+                texture.SetPixels(x * TileRes, y * TileRes, TileRes, TileRes, pixels);
+            }
+        }
+
+
+
+        texture.filterMode = FilterMode.Point;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.Apply();
+        return texture;
+    }
+
     public static Texture2D TextureFromColourMap(Color[] colourMap, int width, int height)
     {
         Texture2D texture = new Texture2D(width, height);
