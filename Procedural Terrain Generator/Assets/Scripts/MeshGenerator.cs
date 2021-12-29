@@ -6,8 +6,8 @@ public static class MeshGenerator
 {
     public static MeshData GenerateFlatTerrainMesh(float[,] heightMap)
     {
-        int width = heightMap.GetLength(0);
-        int height = heightMap.GetLength(1);
+        int width = heightMap.GetLength(0)+1;
+        int height = heightMap.GetLength(1)+1;
         float topLeftX = (width - 1) / 2f;
         float topLeftZ = (height - 1) / 2f;
 
@@ -20,7 +20,7 @@ public static class MeshGenerator
             for (int x = 0; x < width; x++)
             {
                 meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, 0, topLeftZ - y);
-                meshData.uvs[vertexIndex] = new Vector2(x / (float)width, y / (float)height);
+                meshData.uvs[vertexIndex] = new Vector2((x+0) / (float)width, (y+0) / (float)height);
 
                 if (x < width - 1 && y < height - 1)
                 {
@@ -37,8 +37,8 @@ public static class MeshGenerator
 
     public static MeshData GenerateHeightTerrainMesh(float[,] heightMap, float heightMultiplier, AnimationCurve heightCurve)
     {
-        int width = heightMap.GetLength(0);
-        int height = heightMap.GetLength(1);
+        int width = heightMap.GetLength(0)+1;
+        int height = heightMap.GetLength(1)+1;
         float topLeftX = (width - 1) / 2f;
         float topLeftZ = (height - 1) / 2f;
 
@@ -48,9 +48,25 @@ public static class MeshGenerator
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
-            { 
-                meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate( heightMap[x, y]) * heightMultiplier, topLeftZ - y);
+            {
+                if (x < width - 1 && y < height - 1)
+                {
+                    meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x, y]) * heightMultiplier, topLeftZ - y);
+                }
+                else if(x == width - 1 && y < height - 1)
+                {
+                    meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x-1, y]) * heightMultiplier, topLeftZ - y);
+                }
+                else if (x < width - 1 && y == height - 1)
+                {
+                    meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x , y - 1]) * heightMultiplier, topLeftZ - y);
+                }
+                else
+                {
+                    meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x - 1, y - 1]) * heightMultiplier, topLeftZ - y);
+                }
                 vertexIndex++;
+
             }
         }
 
@@ -68,9 +84,9 @@ public class MeshData
 
     public MeshData(int meshWidth, int meshHeight)
     {
-        vertices = new Vector3[meshWidth * meshHeight];
-        uvs = new Vector2[meshWidth * meshHeight];
-        triangles = new int[(meshWidth - 1) * (meshHeight - 1) * 6];
+        vertices = new Vector3[(meshWidth+ 1) * (meshHeight+ 1)];
+        uvs = new Vector2[(meshWidth + 1) * (meshHeight + 1)];
+        triangles = new int[(meshWidth - 0) * (meshHeight - 0) * 6];
     }
 
     public void AddTriangle(int a, int b, int c)

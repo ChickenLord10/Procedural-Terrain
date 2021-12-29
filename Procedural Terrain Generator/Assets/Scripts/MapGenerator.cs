@@ -26,6 +26,7 @@ public class MapGenerator : MonoBehaviour
 
     public bool autoUpdate;
 
+    public TerrainTile[] tileTypes;
     public TerrainType[] regions;
 
     public void GenerateMap()
@@ -54,22 +55,14 @@ public class MapGenerator : MonoBehaviour
         }
         else if (drawmode == DrawMode.TileMap)
         {
-            /*
-            // make a tile map using tileData
-            TileMapData tileMapData = TileMapGenerator.GenerateTileMap(noiseMap, TerrainTiles)
+            Color[] colourMap = ColourMapGenerator.GenerateColourMapRegions(noiseMap, mapWidth, mapHeight, regions);
+            display.DrawTexture(TextureGenerator.TextureFromColourMap(colourMap, mapWidth, mapHeight));
 
-            // make a texture using the tile map
-            Texture2D texture = TextureGenerator.TextureFromTileMap(tileMapData, mapWidth, mapHeight);
-            
-            // make a flat mesh 
+
+            World world = new World(mapWidth, mapHeight);
+            TileMapGenerator.GenerateTileMap(world, noiseMap, mapWidth, mapHeight, tileTypes);
+            Texture2D texture = TextureGenerator.TextureFromTileMap(world.tiles, terrainTiles, mapWidth, mapHeight, tileResolution);
             MeshData meshData = MeshGenerator.GenerateHeightTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve);
-
-            // display the mesh and texture
-            display.DrawMesh(meshData, texture);
-
-            */
-            Texture2D texture = TextureGenerator.TextureFromTileMapColour(terrainTiles, mapWidth, mapHeight, tileResolution);
-            MeshData meshData = MeshGenerator.GenerateFlatTerrainMesh(noiseMap);
             display.DrawMesh(meshData, texture);
         }
     }
@@ -94,9 +87,10 @@ public struct TerrainType
     public Color colour;
 }
 
+[System.Serializable]
 public struct TerrainTile
 {
+    public Tile.TileType type;
     public string name;
     public float height;
-    public Texture2D terrainTileTexture;
 }

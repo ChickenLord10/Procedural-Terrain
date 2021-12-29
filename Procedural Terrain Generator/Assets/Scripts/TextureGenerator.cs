@@ -21,23 +21,21 @@ public static class TextureGenerator
         return tiles;
     }
 
-    public static Texture2D TextureFromTileMapColour(Texture2D tileMaptexture, int width, int height, int TileRes)
+    public static Texture2D TextureFromTileMap(Tile[,] tileMap, Texture2D tileMaptexture, int width, int height, int TileRes)
     {
         int NumTilesPerRow = tileMaptexture.width / TileRes;
         Color[][] tiles = ChopUpTiles(tileMaptexture, TileRes);
 
-        Texture2D texture = new Texture2D(width * TileRes, height * TileRes);
+        Texture2D texture = new Texture2D((width + 1) * TileRes, (height + 1) * TileRes);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                Color[] pixels = tiles[Random.Range(0, NumTilesPerRow)];
+                Color[] pixels = tiles[(int)tileMap[x,y].type];
                 texture.SetPixels(x * TileRes, y * TileRes, TileRes, TileRes, pixels);
             }
         }
-
-
 
         texture.filterMode = FilterMode.Point;
         texture.wrapMode = TextureWrapMode.Clamp;
